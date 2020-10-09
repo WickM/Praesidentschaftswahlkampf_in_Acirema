@@ -11,8 +11,9 @@
 
 #'Libraries:
 library(tidyverse)
+library(janitor)
 
-###----
+###----alle möglichen strategien
 
 create_stats <- function(){
   
@@ -40,9 +41,6 @@ create_stats <- function(){
   
   return(stats)
 }
-
-
-
 get_strategie <- function(burgen){
   pos_strategie <- combn(13, burgen, function(x) (list(x)))
   pos_strategie$sum <- map_int(pos_strategie, sum)
@@ -50,8 +48,11 @@ get_strategie <- function(burgen){
   return (pos_strategie)
 }
 
-strategien <- map(seq(4, 7), get_strategie) %>% flatten()
+strategien <- map(seq(1:13), get_strategie) %>% flatten()
+
+
 strategie_matrix <- matrix(NA, ncol = 13, nrow =  length(strategien))
+strategie_names <- matrix(NA, ncol = 2, nrow =  length(strategien))
 
 for (ii in seq(1, length(strategien))){
   vec <- pluck(strategien, ii)
@@ -59,4 +60,40 @@ for (ii in seq(1, length(strategien))){
   for (aa in vec){
     strategie_matrix[ii, aa] <- 1
   }
+  strategie_names[ii, 1] <- paste(vec, collapse = "")
+  strategie_names[ii, 2] <- length(vec)
 }
+
+strategie_matrix <- as.data.frame(strategie_matrix)
+colnames(strategie_matrix) <- c(paste("land", seq(1,13)))
+strategie_names <- as.data.frame(strategie_names)
+colnames(strategie_names) <- c("strategie", "anz")
+
+ind <- which(strategie_names$anz == 5)
+strategie_matrix_5_laender <- strategie_matrix[ind,]
+strategie_matrix <- bind_cols(strategie_names, strategie_matrix)
+
+#Beste Strategie waehlen
+strategie <- strategie_matrix %>% 
+  pivot_longer(cols = starts_with("land"), names_to = "land", values_to = "val", values_drop_na = TRUE) %>% 
+  group_by(anz, land) %>% 
+  summarise(summe = n()) %>% 
+  filter(anz == 5) %>% 
+  arrange(summe) %>% 
+  pull(summe)
+
+stats <- as.matrix( t(strategie / sum(strategie)))
+for (ii in seq (1, nrow(strategie_matrix_5_laender))){
+  strategie_matrix_5_laender[ii,] <- stats * strategie_matrix_5_laender[ii,]
+} 
+strategie_matrix_5_laender$gefahr <-  rowSums(strategie_matrix_5_laender, na.rm = TRUE)
+strategie <- strategie_matrix_5_laender[which(strategie_matrix_5_laender$gefahr == min(strategie_matrix_5_laender$gefahr)),]
+
+# Kandidaten bauen
+#%80 - 100% der Millionen gehen in die Strategisch wichtigen Laender gewichtet nach gefahr(stats)
+
+strategie <- strategie[1:13]
+
+strategie <- strategie / sum(strategie, na.rm = TRUE)
+strategie <- round( strategie * 100)
+sum (strategie, na.rm = TRUE)
