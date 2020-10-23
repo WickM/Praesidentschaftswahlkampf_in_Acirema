@@ -25,7 +25,7 @@ library(crayon)
 
 strategien <- read.csv2("riddlersieger.csv")
 
-gegner <- strategien[1:10,]
+gegner <- strategien
 meine_strategie <- strategien[11,]
 
 tournament <- function(strategie, gegner) {
@@ -87,7 +87,7 @@ repeat{
   
   if (is.nan (ratio)) {ratio <- 0}
   
-  if (runif(1) < ratio & ratio) {
+  if (runif(1) < ratio) {
     parent_strategie <- child_strategie
     parent_fit <- child_fit
     
@@ -99,5 +99,7 @@ repeat{
   cat("current_fit=",red(parent_fit), "current_temperature=", temp, "ratio=", ratio , "iteration=", iteration, "nr_survived =",survived,"\n") 
   flush.console()
   
-  if (survived >= 100000){break}
+  if (survived >= 100000 | parent_fit == 10){break}
 }
+
+
