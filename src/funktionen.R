@@ -86,14 +86,18 @@ stats <- as.matrix( t(strategie / sum(strategie)))
 for (ii in seq (1, nrow(strategie_matrix_5_laender))){
   strategie_matrix_5_laender[ii,] <- stats * strategie_matrix_5_laender[ii,]
 } 
+
 strategie_matrix_5_laender$gefahr <-  rowSums(strategie_matrix_5_laender, na.rm = TRUE)
-strategie <- strategie_matrix_5_laender[which(strategie_matrix_5_laender$gefahr == min(strategie_matrix_5_laender$gefahr)),]
+strategie <- strategie_matrix_5_laender
 
-# Kandidaten bauen
-#%80 - 100% der Millionen gehen in die Strategisch wichtigen Laender gewichtet nach gefahr(stats)
-
+#strategie <- strategie_matrix_5_laender[which(strategie_matrix_5_laender$gefahr == min(strategie_matrix_5_laender$gefahr)),]
 strategie <- strategie[1:13]
 
-strategie <- strategie / sum(strategie, na.rm = TRUE)
-strategie <- round( strategie * 100)
-sum (strategie, na.rm = TRUE)
+for (ii in seq(1, nrow(strategie))) {
+  strategie[ii, ] <- strategie[ii, ] / sum(strategie[ii, ], na.rm = TRUE)
+  strategie[ii, ] <- round( strategie[ii, ] * 100)
+}
+
+
+
+
